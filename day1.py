@@ -1,5 +1,6 @@
 from math import floor
 
+from aoc_util.day_util import get_day_number
 from aoc_util.input import get_input
 from aoc_util.decorators import aocTimer
 
@@ -48,5 +49,6 @@ if __name__ == '__main__':
     # Transform the input into ints representing the mass of each module.
     module_masses = [int(line) for line in get_input()]
 
+    print(get_day_number())
     part_one(module_masses)
     part_two(module_masses)
