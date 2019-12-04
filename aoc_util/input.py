@@ -19,7 +19,8 @@ def get_input():
 
 
 def __get_input_filename():
-    """ Returns the input file name based on the context of the calling code file.
+    """ Returns the input file name based on the context of the calling
+    code file.
     
     Ex.
     day3.py  --> input_day3.txt
@@ -30,6 +31,6 @@ def __get_input_filename():
     code_file = stack()[-1].filename
 
     # Remove the code file extension, build and return the input file name.
-    code_file_without_header = code_file.replace(PYTHON_FILE_EXT, EMPTY_STRING)
+    code_file_no_header = code_file.replace(PYTHON_FILE_EXT, EMPTY_STRING)
 
-    return INPUT_FILENAME_TEMPLATE.format(day_num=code_file_without_header)
+    return INPUT_FILENAME_TEMPLATE.format(day_num=code_file_no_header)
