@@ -1,4 +1,5 @@
 from aoc_util.input import get_tokenized_input
+from aoc_util.iter import nested_iterable
 from aoc_util.decorators import aoc_output_formatter
 
 #------------------------------------------------------------------------------
@@ -104,19 +105,17 @@ def part_two(problem_input):
     # We're looking to override the values with position 1 with 'noun' and
     # position 2 with 'verb' such that the program output (the value in
     # position 0 when the program halts) is 19690720
-    noun, verb = None, None
-    for noun in range(100):
-        for verb in range(100):
+    for noun, verb in nested_iterable(range(100), range(100)):
 
-            # Copy the original program
-            # Set the values at positions 1 and 2 with `noun` and `verb`
-            computer = IntcodeComputer()
-            program = [i for i in problem_input]
-            program[1] = noun
-            program[2] = verb
+        # Copy the original program
+        # Set the values at positions 1 and 2 with `noun` and `verb`
+        computer = IntcodeComputer()
+        program = [i for i in problem_input]
+        program[1] = noun
+        program[2] = verb
 
-            if computer.execute(program) == 19690720:
-                return (100 * noun) + verb
+        if computer.execute(program) == 19690720:
+            return (100 * noun) + verb
 
 # -----------------------------------------------------------------------------
 
