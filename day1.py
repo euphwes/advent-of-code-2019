@@ -1,8 +1,7 @@
 from math import floor
 
-from aoc_util.day_util import get_day_number
 from aoc_util.input import get_input
-from aoc_util.decorators import aocTimer
+from aoc_util.decorators import aoc_output_formatter
 
 #------------------------------------------------------------------------------
 
@@ -11,15 +10,15 @@ fuel_req = lambda mass: int(floor(mass / 3)) - 2
 
 #------------------------------------------------------------------------------
 
-@aocTimer()
+@aoc_output_formatter(2019, 1, 1, 'fuel requirements')
 def part_one(problem_input):
 
     # Simply sum the fuel requirements for each module mass.
     fuel_reqs = [fuel_req(mass) for mass in problem_input]
-    print(sum(fuel_reqs))
+    return sum(fuel_reqs)
 
 
-@aocTimer()
+@aoc_output_formatter(2019, 1, 2, 'improved fuel requirements')
 def part_two(problem_input):
 
     # Holds the components of all fuel requirements for the mission
@@ -40,7 +39,7 @@ def part_two(problem_input):
         # Add the total fuel reqs for this module to the mission fuel reqs
         mission_fuel_reqs.append(sum(module_fuel_reqs))
 
-    print(sum(mission_fuel_reqs))
+    return sum(mission_fuel_reqs)
 
 #------------------------------------------------------------------------------
 
@@ -49,6 +48,5 @@ if __name__ == '__main__':
     # Transform the input into ints representing the mass of each module.
     module_masses = [int(line) for line in get_input()]
 
-    print(get_day_number())
     part_one(module_masses)
     part_two(module_masses)
