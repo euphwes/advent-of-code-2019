@@ -61,4 +61,4 @@ class __aocTimer(ContextDecorator):
         elif seconds < 1:
             print(MILLIS_ELAPSED.format(millis))
         else:
-            print(SECONDS_ELAPSED.format(seconds, millis))
+            print(SECONDS_ELAPSED.format(seconds, int(millis)))
