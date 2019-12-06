@@ -17,6 +17,10 @@ class IntcodeComputer:
     OPCODE_MULT   = 2   # 2, <param1>, <param2>, <destination>
     OPCODE_INPUT  = 3   # 3, <destination>
     OPCODE_OUTPUT = 4   # 4, <param>
+    OPCODE_JIT    = 5   # 5, <param1>, <param2>
+    OPCODE_JIF    = 6   # 6, <param1>, <param2>
+    OPCODE_LESS   = 7   # 7, <param1>, <param2>, <destination>
+    OPCODE_EQUALS = 8   # 8, <param1>, <param2>, <destination>
     OPCODE_HALT   = 99
 
     PARAM_MODE_POSITION  = 0
@@ -34,13 +38,21 @@ class IntcodeComputer:
             IntcodeComputer.OPCODE_MULT:   self.enact_mult,
             IntcodeComputer.OPCODE_INPUT:  self.enact_input,
             IntcodeComputer.OPCODE_OUTPUT: self.enact_output,
+            IntcodeComputer.OPCODE_JIT:    self.enact_jit,
+            IntcodeComputer.OPCODE_JIF:    self.enact_jif,
+            IntcodeComputer.OPCODE_LESS:   self.enact_less_than,
+            IntcodeComputer.OPCODE_EQUALS: self.enact_equals,
         }
 
         self.opcode_num_parameters_map = {
             IntcodeComputer.OPCODE_ADD:    3,
             IntcodeComputer.OPCODE_MULT:   3,
             IntcodeComputer.OPCODE_INPUT:  1,
-            IntcodeComputer.OPCODE_OUTPUT: 1
+            IntcodeComputer.OPCODE_OUTPUT: 1,
+            IntcodeComputer.OPCODE_JIT:    2,
+            IntcodeComputer.OPCODE_JIF:    2,
+            IntcodeComputer.OPCODE_LESS:   3,
+            IntcodeComputer.OPCODE_EQUALS: 3,
         }
 
 
@@ -51,20 +63,23 @@ class IntcodeComputer:
         self.program = program
 
         # Retrieve the first opcode and param modes
-        opcode, param_modes = self.get_opcode_and_param_modes()
+        opcode, modes = self.get_opcode_and_param_modes()
 
         # Continue until we find the HALT opcode
         while opcode != IntcodeComputer.OPCODE_HALT:
 
             # Execute the current opcode
-            self.execute_instruction(opcode, param_modes)
+            skip_advance_instruction_ptr = self.execute_instruction(opcode, modes)
 
-            # Advance the instruction pointer by the number of parameters used
-            # by the previous instruction
-            self.instruction_ptr += self.opcode_num_parameters_map[opcode] + 1
+            # if the instruction just executed modified the instruction pointer
+            # directly, skip advancing the instruction pointer
+            if not skip_advance_instruction_ptr:
+                # Advance the instruction pointer by the number of parameters used
+                # by the previous instruction
+                self.instruction_ptr += self.opcode_num_parameters_map[opcode] + 1
 
             # Retrieve the next opcode and param modes
-            opcode, param_modes = self.get_opcode_and_param_modes()
+            opcode, modes = self.get_opcode_and_param_modes()
 
         # Return the value at address 0 in the program
         return self.program[0]
@@ -118,7 +133,7 @@ class IntcodeComputer:
         # Pair the parameters with their associated parameter mode.
         params_with_modes = [(p, param_modes[i]) for i, p in enumerate(params)]
 
-        self.opcode_map[opcode](*params_with_modes)
+        return self.opcode_map[opcode](*params_with_modes)
 
 
     def determine_param_value(self, param_id, param_mode):
@@ -170,3 +185,55 @@ class IntcodeComputer:
         """ Executes an OUTPUT instruction. """
 
         print(self.determine_param_value(*param1_with_mode))
+
+
+    def enact_jit(self, param1_with_mode, param2_with_mode):
+        """ Executes a JUMP IF TRUE instruction. If the value of param1
+        is non-zero, set the instruction point to the value of param2. """
+
+        val1 = self.determine_param_value(*param1_with_mode)
+        val2 = self.determine_param_value(*param2_with_mode)
+
+        if val1 != 0:
+            self.instruction_ptr = val2
+            return True
+
+
+    def enact_jif(self, param1_with_mode, param2_with_mode):
+        """ Executes a JUMP IF FALSE instruction. If the value of param1
+        is zero, set the instruction point to the value of param2. """
+
+        val1 = self.determine_param_value(*param1_with_mode)
+        val2 = self.determine_param_value(*param2_with_mode)
+
+        if val1 == 0:
+            self.instruction_ptr = val2
+            return True
+
+
+    def enact_less_than(self, param1_with_mode, param2_with_mode, output_param):
+        """ Executes a LESS THAN instruction. If the value of param1 is less
+        than the value of param2, store 1 at the address given by output_param,
+        otherwise store 0. """
+
+        val1 = self.determine_param_value(*param1_with_mode)
+        val2 = self.determine_param_value(*param2_with_mode)
+
+        # ignore parameter mode, we're writing here
+        output_idx = output_param[0]
+
+        self.program[output_idx] = 1 if val1 < val2 else 0
+
+
+    def enact_equals(self, param1_with_mode, param2_with_mode, output_param):
+        """ Executes an EQUALS instruction. If the value of param1 is equal
+        to the value of param2, store 1 at the address given by output_param,
+        otherwise store 0. """
+
+        val1 = self.determine_param_value(*param1_with_mode)
+        val2 = self.determine_param_value(*param2_with_mode)
+
+        # ignore parameter mode, we're writing here
+        output_idx = output_param[0]
+
+        self.program[output_idx] = 1 if val1 == val2 else 0
