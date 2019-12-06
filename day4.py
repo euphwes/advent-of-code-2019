@@ -69,7 +69,6 @@ def __count_valid_passwords(digit_run_check):
 
 	return num_valid_passwords
 
-
 # -----------------------------------------------------------------------------
 
 @aoc_output_formatter(2019, 4, 1, "number of valid passwords")
