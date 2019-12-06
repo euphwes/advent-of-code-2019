@@ -1,6 +1,4 @@
 
-# TODO - figure out clean way to make sure
-
 class IntcodeComputer:
     """ A computer than can execute arbitrary Intcode programs.
 
@@ -56,11 +54,16 @@ class IntcodeComputer:
         }
 
 
-    def execute(self, program):
+    def execute(self, program, program_input=None):
         """ Executes the provided program, and returns the value at address 0
         after the program halts."""
 
         self.program = program
+
+        # Optional list containing program input.
+        # If this is present, the OPCODE_INPUT will pop a value from this
+        # Otherwise it will directly prompt the user
+        self.program_input = program_input
 
         # Retrieve the first opcode and param modes
         opcode, modes = self.get_opcode_and_param_modes()
@@ -177,7 +180,13 @@ class IntcodeComputer:
         # ignore parameter mode, we're writing here
         target_idx = target_param[0]
 
-        input_value = int(input('input: '))
+        # If the input has already been provided, pop the next value from
+        # list to use here. Otherwise prompt the user.
+        if self.program_input:
+            input_value = self.program_input.pop()
+        else:
+            input_value = int(input('input: '))
+
         self.program[target_idx] = input_value
 
 

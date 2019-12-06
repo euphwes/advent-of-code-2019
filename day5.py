@@ -6,12 +6,12 @@ from aoc_util.decorators import aoc_output_formatter
 
 @aoc_output_formatter(2019, 5, 1, ignore_return_val=True)
 def part_one(program):
-    IntcodeComputer().execute(program)
+    IntcodeComputer().execute(program, program_input=[1])
 
 
 @aoc_output_formatter(2019, 5, 2, ignore_return_val=True)
 def part_two(program):
-    IntcodeComputer().execute(program)
+    IntcodeComputer().execute(program, program_input=[5])
 
 # -----------------------------------------------------------------------------
 
