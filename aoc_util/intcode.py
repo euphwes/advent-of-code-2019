@@ -1,11 +1,20 @@
 
 class IntcodeComputer:
     """ A computer than can execute arbitrary Intcode programs.
-    See https://adventofcode.com/2019/day/2 for the start of the Intcode specification. """
 
-    OPCODE_ADD  = 1
-    OPCODE_MULT = 2
-    OPCODE_HALT = 99
+    - https://adventofcode.com/2019/day/2, start of the Intcode spec
+        - opcodes 1 (add), 2 (multiply), 99 (halt)
+
+    - https://adventofcode.com/2019/day/2, continue building on Intcode spec
+        - opcodes 3 (input), 4 (output)
+
+    """
+
+    OPCODE_ADD    = 1     # 1, <param1>, <param2>, <destination>
+    OPCODE_MULT   = 2     # 2, <param1>, <param2>, <destination>
+    OPCODE_INPUT  = 3     # 3, <destination>
+    OPCODE_OUTPUT = 4     # 4, <param>
+    OPCODE_HALT   = 99    # 99
 
     def __init__(self):
         """ Initializes an Intcode computer. Sets the instruction pointer to address 0,
@@ -14,13 +23,17 @@ class IntcodeComputer:
         self.instruction_ptr = 0
 
         self.opcode_map = {
-            IntcodeComputer.OPCODE_ADD:  self.enact_add,
-            IntcodeComputer.OPCODE_MULT: self.enact_mult
+            IntcodeComputer.OPCODE_ADD:    self.enact_add,
+            IntcodeComputer.OPCODE_MULT:   self.enact_mult,
+            IntcodeComputer.OPCODE_INPUT:  self.enact_input,
+            IntcodeComputer.OPCODE_OUTPUT: self.enact_output,
         }
 
         self.opcode_num_parameters_map = {
-            IntcodeComputer.OPCODE_ADD:  3,
-            IntcodeComputer.OPCODE_MULT: 3
+            IntcodeComputer.OPCODE_ADD:    3,
+            IntcodeComputer.OPCODE_MULT:   3,
+            IntcodeComputer.OPCODE_INPUT:  1,
+            IntcodeComputer.OPCODE_OUTPUT: 1
         }
 
 
@@ -78,3 +91,16 @@ class IntcodeComputer:
 
         val1, val2 = self.program[input_idx1], self.program[input_idx2]
         self.program[output_idx] = val1 * val2
+
+
+    def enact_input(self, target_idx):
+        """ Executes an INPUT instruction. """
+
+        input_value = int(input('input: '))
+        self.program[target_idx] = input_value
+
+
+    def enact_output(self, output_idx):
+        """ Executes an OUTPUT instruction. """
+
+        print(self.program[output_idx])
