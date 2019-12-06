@@ -12,10 +12,14 @@ SECONDS_ELAPSED = 'Ran in {}.{} s'
 
 #------------------------------------------------------------------------------
 
-def aoc_output_formatter(year, day, part, label=None):
+def aoc_output_formatter(year, day, part, label=None, ignore_return_val=False):
     """ Builds a decorator to format the output for a specific AoC solution
     function with niceties like the current day, which problem part it is, and
-    an optional meaningful label for the solution's output. """
+    an optional meaningful label for the solution's output.
+
+    The user can optionally choose to ignore the decorated function's return
+    value, which is useful if the problem solution is output by some other
+    means (like being printed to console), not returned by the function. """
 
     header = AOC_OUTPUT_HEADER.format(year=year, day=day, part=part)
     output_format = '{label}: {value}' if label else '{value}'
@@ -32,7 +36,11 @@ def aoc_output_formatter(year, day, part, label=None):
 
             print(header)
             value = fn(*args)
-            print(output_format.format(value=value, label=label))
+
+            # Only print the output (with value returned from decorated function)
+            # if we're not ignoring the return value
+            if not ignore_return_val:
+                print(output_format.format(value=value, label=label))
 
         # return the decorated function from the decorator
         return __fn_wrapper
