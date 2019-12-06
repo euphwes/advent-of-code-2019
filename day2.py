@@ -40,8 +40,7 @@ def part_two(problem_input):
 
 if __name__ == '__main__':
 
-    # Transform the input into a list of ints which define the the
-    # Intcode computer program
+    # Transform the input into a list of ints which define the Intcode program
     program = get_tokenized_input(',', lambda t: int(t))[0]
 
     part_one(program)
