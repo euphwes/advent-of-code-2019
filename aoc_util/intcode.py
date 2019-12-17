@@ -1,4 +1,10 @@
 
+class InputNotAvailableException(BaseException):
+    """ An exception to indicate that an IntcodeComputer is attempting to read
+    input but none is available. """
+    pass
+
+
 class IntcodeComputer:
     """ A computer than can execute arbitrary Intcode programs.
 
@@ -8,7 +14,6 @@ class IntcodeComputer:
     - https://adventofcode.com/2019/day/2, continue building on Intcode spec
         - opcodes 3 (input), 4 (output)
         - parameter modes: immediate and positional
-
     """
 
     OPCODE_ADD    = 1   # 1, <param1>, <param2>, <destination>
@@ -24,12 +29,31 @@ class IntcodeComputer:
     PARAM_MODE_POSITION  = 0
     PARAM_MODE_IMMEDIATE = 1
 
+    STATE_INIT    = 'init'     # computer initialized, not yet running
+    STATE_RUNNING = 'running'  # computer actively running program
+    STATE_WAITING = 'waiting'  # computer needs input that isn't yet available
+
+    OPCODE_NUM_PARAMS_MAP = {
+        OPCODE_ADD:    3,
+        OPCODE_MULT:   3,
+        OPCODE_INPUT:  1,
+        OPCODE_OUTPUT: 1,
+        OPCODE_JIT:    2,
+        OPCODE_JIF:    2,
+        OPCODE_LESS:   3,
+        OPCODE_EQUALS: 3,
+    }
+
+
     def __init__(self):
         """ Initializes an Intcode computer. Sets the instruction pointer to
         address 0, and establishes some maps defining which action to take for
         any given opcode. """
 
+        self.output_buffer = list()
         self.instruction_ptr = 0
+
+        self.state = IntcodeComputer.STATE_INIT
 
         self.opcode_map = {
             IntcodeComputer.OPCODE_ADD:    self.enact_add,
@@ -42,28 +66,25 @@ class IntcodeComputer:
             IntcodeComputer.OPCODE_EQUALS: self.enact_equals,
         }
 
-        self.opcode_num_parameters_map = {
-            IntcodeComputer.OPCODE_ADD:    3,
-            IntcodeComputer.OPCODE_MULT:   3,
-            IntcodeComputer.OPCODE_INPUT:  1,
-            IntcodeComputer.OPCODE_OUTPUT: 1,
-            IntcodeComputer.OPCODE_JIT:    2,
-            IntcodeComputer.OPCODE_JIF:    2,
-            IntcodeComputer.OPCODE_LESS:   3,
-            IntcodeComputer.OPCODE_EQUALS: 3,
-        }
-
 
     def execute(self, program, program_input=None):
-        """ Executes the provided program, and returns the value at address 0
-        after the program halts."""
+        """ Executes the provided program with the specified input. """
 
-        self.program = program
+        # If the computer is currently waiting, that means it was previously
+        # running. We only want to update the input to utilize the new input,
+        # we don't want to mess with the program state (memory), we want to
+        # continue running with the previous state of the memory
+        if self.state == IntcodeComputer.STATE_WAITING:
+            self.program_input = program_input
 
-        # Optional list containing program input.
-        # If this is present, the OPCODE_INPUT will pop a value from this
-        # Otherwise it will directly prompt the user
-        self.program_input = program_input
+        # If the computer isn't waiting, this is a fresh execution.
+        # Store the program into memory, and the new input
+        else:
+            self.program = program
+            self.program_input = program_input
+
+        # Whether the previous state was init or waiting, now it's running
+        self.state = IntcodeComputer.STATE_RUNNING
 
         # Retrieve the first opcode and param modes
         opcode, modes = self.get_opcode_and_param_modes()
@@ -71,21 +92,23 @@ class IntcodeComputer:
         # Continue until we find the HALT opcode
         while opcode != IntcodeComputer.OPCODE_HALT:
 
-            # Execute the current opcode
-            skip_advance_instruction_ptr = self.execute_instruction(opcode, modes)
+            try:
+                # Execute the current opcode
+                skip_advance_instruction_ptr = self.execute_instruction(opcode, modes)
 
-            # if the instruction just executed modified the instruction pointer
+            except InputNotAvailableException:
+                self.state = IntcodeComputer.STATE_WAITING
+                raise
+
+            # If the instruction just executed modified the instruction pointer
             # directly, skip advancing the instruction pointer
             if not skip_advance_instruction_ptr:
                 # Advance the instruction pointer by the number of parameters used
                 # by the previous instruction
-                self.instruction_ptr += self.opcode_num_parameters_map[opcode] + 1
+                self.instruction_ptr += IntcodeComputer.OPCODE_NUM_PARAMS_MAP[opcode] + 1
 
             # Retrieve the next opcode and param modes
             opcode, modes = self.get_opcode_and_param_modes()
-
-        # Return the value at address 0 in the program
-        return self.program[0]
 
 
     def get_opcode_and_param_modes(self):
@@ -122,7 +145,7 @@ class IntcodeComputer:
         starting from the current address of the instruction pointer. """
 
         i = self.instruction_ptr
-        num_params = self.opcode_num_parameters_map[opcode]
+        num_params = IntcodeComputer.OPCODE_NUM_PARAMS_MAP[opcode]
 
         return self.program[i+1 : i+1+num_params]
 
@@ -137,6 +160,18 @@ class IntcodeComputer:
         params_with_modes = [(p, param_modes[i]) for i, p in enumerate(params)]
 
         return self.opcode_map[opcode](*params_with_modes)
+
+
+    def has_output(self):
+        """ Returns whether or not there is any output remaining. """
+
+        return bool(self.output_buffer)
+
+
+    def get_output(self):
+        """ Returns from the output buffer. """
+
+        return self.output_buffer.pop(0)
 
 
     def determine_param_value(self, param_id, param_mode):
@@ -177,15 +212,16 @@ class IntcodeComputer:
     def enact_input(self, target_param):
         """ Executes an INPUT instruction. """
 
-        # ignore parameter mode, we're writing here
+        # Ignore parameter mode, we're writing here
         target_idx = target_param[0]
 
         # If the input has already been provided, pop the next value from
-        # list to use here. Otherwise prompt the user.
+        # list to use here. Otherwise raise an exception to indicate no
+        # input is available.
         if self.program_input:
-            input_value = self.program_input.pop()
+            input_value = self.program_input.pop(0)
         else:
-            input_value = int(input('input: '))
+            raise InputNotAvailableException()
 
         self.program[target_idx] = input_value
 
@@ -193,7 +229,8 @@ class IntcodeComputer:
     def enact_output(self, param1_with_mode):
         """ Executes an OUTPUT instruction. """
 
-        print(self.determine_param_value(*param1_with_mode))
+        output_value = self.determine_param_value(*param1_with_mode)
+        self.output_buffer.append(output_value)
 
 
     def enact_jit(self, param1_with_mode, param2_with_mode):

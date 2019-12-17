@@ -15,7 +15,10 @@ def part_one(problem_input):
     program[1] = 12
     program[2] = 2
 
-    return IntcodeComputer().execute(program)
+    computer = IntcodeComputer()
+    computer.execute(program)
+
+    return computer.program[0]
 
 
 @aoc_output_formatter(2019, 2, 1, '100 * noun + verb')
@@ -33,7 +36,9 @@ def part_two(problem_input):
         program[1] = noun
         program[2] = verb
 
-        if computer.execute(program) == 19690720:
+        computer.execute(program)
+
+        if computer.program[0] == 19690720:
             return (100 * noun) + verb
 
 # -----------------------------------------------------------------------------

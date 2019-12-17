@@ -8,12 +8,12 @@ from aoc_util.decorators import aoc_output_formatter
 # -----------------------------------------------------------------------------
 
 @aoc_output_formatter(2019, 0, 1, 'custom output label')
-def part_one(orbital_name_pairs):
+def part_one(problem_input):
     pass
 
 
 @aoc_output_formatter(2019, 0, 2, 'custom output label')
-def part_two(orbital_name_pairs):
+def part_two(problem_input):
     pass
 
 # -----------------------------------------------------------------------------

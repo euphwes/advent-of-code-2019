@@ -4,14 +4,30 @@ from aoc_util.decorators import aoc_output_formatter
 
 # -----------------------------------------------------------------------------
 
-@aoc_output_formatter(2019, 5, 1, ignore_return_val=True)
+@aoc_output_formatter(2019, 5, 1, 'diagnostic code')
 def part_one(program):
-    IntcodeComputer().execute(program, program_input=[1])
+    computer = IntcodeComputer()
+    computer.execute(program, program_input=[1])
+
+    # All the output values except the last should be 0, indicating
+    # passing tests. The final output is the diagnostic code
+    while computer.has_output():
+        output = computer.get_output()
+
+    return output
 
 
-@aoc_output_formatter(2019, 5, 2, ignore_return_val=True)
+@aoc_output_formatter(2019, 5, 2, 'diagnostic code')
 def part_two(program):
-    IntcodeComputer().execute(program, program_input=[5])
+    computer = IntcodeComputer()
+    computer.execute(program, program_input=[5])
+
+    # All the output values except the last should be 0, indicating
+    # passing tests. The final output is the diagnostic code
+    while computer.has_output():
+        output = computer.get_output()
+
+    return output
 
 # -----------------------------------------------------------------------------
 
